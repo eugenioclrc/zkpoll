@@ -1,0 +1,58 @@
+'use client';
+
+import { useState, FormEvent } from 'react';
+import { gun } from '@/lib/gun';
+import { useVote } from '@/store/useVote';
+
+const CANDIDATES = ['Alice', 'Bob', 'Charlie'];
+
+export default function VoteForm() {
+  const { nullifier, setVote } = useVote();
+  const [candidate, setCandidate] = useState('');
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!nullifier || !candidate) return;
+
+    const gunInstance = gun.get();
+    if (!gunInstance) return;
+
+    gunInstance.get('zkpoll').get('votes').get(nullifier).once((data) => {
+      if (data) {
+        alert('Ya votaste 👀');
+        return;
+      }
+
+      gunInstance.get('zkpoll').get('votes').get(nullifier).put({
+        candidate,
+        t: Date.now(),
+      });
+
+      setVote(nullifier, candidate);
+      alert('¡Voto registrado!');
+    });
+  };
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      <select
+        disabled={!nullifier}
+        value={candidate}
+        onChange={(e) => setCandidate(e.target.value)}
+        className="select select-bordered"
+      >
+        <option value="">Elegí un candidato</option>
+        {CANDIDATES.map((c) => (
+          <option key={c}>{c}</option>
+        ))}
+      </select>
+
+      <button
+        disabled={!nullifier || !candidate}
+        className="btn btn-primary"
+      >
+        Votar
+      </button>
+    </form>
+  );
+}

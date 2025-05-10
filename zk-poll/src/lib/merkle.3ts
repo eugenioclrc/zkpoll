@@ -1,0 +1,19 @@
+import { MerkleTree } from "@applied-crypto/merkletree";
+import { poseidon } from "@applied-crypto/merkletree/hashers";
+import { gun } from "./gun";
+
+export async function rebuildRoot() {
+  const gunInstance = gun.get();
+  if (!gunInstance) return null;
+
+  const leaves: string[] = [];
+  await gunInstance.get("zkpoll").get("votes").map().once((data, id) => {
+    if (data) leaves.push(id);           // id === nullifier hash
+  });
+
+  const tree = new MerkleTree(leaves, poseidon, { hashLeaves: true });
+  const root = tree.getRoot().toString();
+
+  gunInstance.get("zkpoll").get("root").put(root);
+  return root;
+} 
