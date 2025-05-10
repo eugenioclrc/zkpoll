@@ -57,7 +57,8 @@ function RegistrationForm() {
       });
 
       // Store the proofs and query result to send to the server
-      const proofs = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const proofs: any[] = [];
 
       onProofGenerated((proof) => {
         proofs.push(proof);
@@ -100,7 +101,8 @@ function RegistrationForm() {
             setError(data.error || "Registration failed");
             setVerificationStatus("failed");
           }
-        } catch (err) {
+        } catch (error) {
+          console.error("Error communicating with server:", error);
           setError("Error communicating with server");
           setVerificationStatus("failed");
         }
@@ -115,8 +117,8 @@ function RegistrationForm() {
         setError(`Error during verification: ${error}`);
         setVerificationStatus("error");
       });
-    } catch (err) {
-      setError(`Failed to initialize verification: ${err.message}`);
+    } catch (error) {
+      setError(`Failed to initialize verification: ${error instanceof Error ? error.message : String(error)}`);
       setVerificationStatus("error");
     }
   };
